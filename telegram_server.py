@@ -1,61 +1,36 @@
 import asyncio
 from aiogram import Bot, Dispatcher, types
 
-from bulls_and_cows import BullsAndCows
+from bulls_and_cows import GameSession
 from bot_config import TELEGRAM_BOT_TOKEN as BOT_TOKEN
-from collections import deque
-import time
 
-async def start_handler(event: types.Message):
-    await event.answer(
-        f"Hello, {event.from_user.get_mention(as_html=True)} 👋!",
+async def start_handler(player: types.Message):
+    await player.answer(
+        f"Hello, {player.from_user.get_mention(as_html=True)} 👋!",
         parse_mode=types.ParseMode.HTML,
     )
 
-async def search_handler(event: types.Message):
-    await event.answer(
+async def search_handler(player: types.Message):
+    await player.answer(
         f"Searching opponent..."
         )
-    print(event.from_user.first_name)
     opponent = None
     while opponent is None:
-        opponent = await get_opponent(event)
+        opponent = await get_opponent(player)
         await asyncio.sleep(1)
-    print(opponent)
-    await create_game_session(event, opponent)
+    game_session = GameSession(player.chat.id, opponent.chat.id)
+    # изменить состояние игроков
+    # записать game_session в кэш
 
 opponent_queue = set()
-async def get_opponent(event: types.Message):
-    opponent_queue.add(event)
+async def get_opponent(player: types.Message):
+    opponent_queue.add(player)
     if len(opponent_queue) > 1:
         for elem in opponent_queue:
-            if elem.chat.id != event.chat.id:
-                opponent_queue.remove(event)
+            if elem.chat.id != player.chat.id:
+                opponent_queue.remove(player)
                 opponent_queue.remove(elem)
                 return elem
-
-async def create_game_session(player_1: types.Message, player_2: types.Message):
-    await player_1.answer(
-        f"Your opponent {player_2.from_user.get_mention(as_html=True)}👋 Get ready to the battle!",
-        parse_mode=types.ParseMode.HTML,
-    )
-    await player_2.answer(
-        f"Your opponent {player_1.from_user.get_mention(as_html=True)}👋 Get ready to the battle!",
-        parse_mode=types.ParseMode.HTML,
-    )
-    winner = None
-    game_1 = game_2 = BullsAndCows()
-    while winner is None:
-        winner = await play_game(player_1, game_1)
-        winner = await play_game(player_2, game_2)
-    # объявить победителя и закончить сессию
-
-async def play_game(player: types.Message, game: BullsAndCows):
-    await player.answer(
-        f"Put the number:",
-        parse_mode=types.ParseMode.HTML,
-    )
-    # здесь читать число из чата, проверить и выдать результат в чат
 
 async def main():
     bot = Bot(token=BOT_TOKEN)
