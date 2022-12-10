@@ -6,7 +6,7 @@ class BullsAndCows:
         self.number_lenght = 4
         self.number = self._number_generator()
     
-    def check(self, candidate) -> dict:
+    def check(self, candidate) -> tuple:
         result = {
             "bulls" : 0,
             "cows" : 0
@@ -17,7 +17,8 @@ class BullsAndCows:
                 result["bulls"] += 1
             elif elem in self.number:
                 result["cows"] += 1
-        return result
+        win_status = True if result["bulls"] == self.number_lenght else False            
+        return (result, win_status)
 
     def _number_generator(self) -> tuple:
         seq = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -31,7 +32,7 @@ class GameSession:
             player_2 : (game_2 := BullsAndCows())
         }
 
-    def check(self, player, number) -> dict:
+    def check(self, player, number) -> tuple:
         return self.games[player].check(number)
 
 if __name__ == "__main__":
