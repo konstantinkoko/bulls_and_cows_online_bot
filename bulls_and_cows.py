@@ -11,8 +11,8 @@ class BullsAndCows:
             "bulls" : 0,
             "cows" : 0
             }
-        _candidate = self._number_validator(candidate)
-        for i, elem in enumerate(_candidate):
+        print(candidate, self.number)
+        for i, elem in enumerate(candidate):
             if elem == self.number[i]:
                 result["bulls"] += 1
             elif elem in self.number:
@@ -21,7 +21,7 @@ class BullsAndCows:
         return (result, win_status)
 
     def _number_generator(self) -> tuple:
-        seq = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        seq = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
         return tuple(random.choices(seq, k=self.number_lenght))
 
 class GameSession:
@@ -33,7 +33,13 @@ class GameSession:
         }
 
     def check(self, player, number) -> tuple:
-        return self.games[player].check(number)
+        result, win_status = self.games[player.from_user.id].check(number)
+        if win_status:
+            result = {
+                "winner" : player,
+                "looser" : list(self.games.keys()).remove(player)[0]
+            }
+        return (result, win_status)
 
 if __name__ == "__main__":
 
