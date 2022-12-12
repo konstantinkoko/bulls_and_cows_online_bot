@@ -5,6 +5,7 @@ class BullsAndCows:
     def __init__(self) -> None:
         self.number_lenght = 4
         self.number = self._number_generator()
+        self.game_steps = {}
     
     def check(self, candidate: str) -> tuple:
         _candidate, status = self._number_validator(candidate)
@@ -20,12 +21,18 @@ class BullsAndCows:
                 result["bulls"] += 1
             elif elem in self.number:
                 result["cows"] += 1
+        self.game_steps[candidate] = result
         status = "win" if result["bulls"] == self.number_lenght else "game"
-        return (result, status)
+        return (self.game_steps, status)
 
     def _number_generator(self) -> tuple:
         seq = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-        return tuple(random.choices(seq, k=self.number_lenght))
+        number = []
+        for _ in range(self.number_lenght):
+            elem = random.choice(seq)
+            seq.remove(elem)
+            number.append(elem)
+        return tuple(number)
     
     def _number_validator(self, text: str) -> tuple:
         if len(_text := text.strip()) == self.number_lenght and _text.isdigit():
@@ -55,9 +62,11 @@ class GameSession:
             else:
                 winner = self.player_2
                 looser = self.player_1
+            steps = len(result)
             result = {
                 "winner" : winner,
-                "looser" : looser
+                "looser" : looser,
+                "steps" : steps
             }
         return (result, status)
 

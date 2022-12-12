@@ -77,17 +77,20 @@ async def game_handler(message: types.Message, state: FSMContext):
         await message.answer(f"Wrong input!")
     elif status == "win":
         await bot.send_message(
-            result["winner"].chat_id, f"You win 👋!",
+            result["winner"].chat_id, f"You win 👋! Steps: {result['steps']}",
             parse_mode=types.ParseMode.HTML,
         )
         await bot.send_message(
-            result["looser"].chat_id, f"You loose 👋!",
+            result["looser"].chat_id, f"You lose 👋!",
             parse_mode=types.ParseMode.HTML,
         )
         await state.reset_state()
         await state.storage.reset_state(chat=result["looser"].chat_id, user=result["looser"].id)
     else:
-        await message.answer(f"""Bulls: {result["bulls"]}\nCows: {result["cows"]}""")
+        text = ""
+        for key in result:
+            text += f"{key} : 🐂 {result[key]['bulls']}    🐮 {result[key]['cows']}\n" + "---------------\n"
+        await message.answer(text)
 
 opponent_queue = set()
 async def get_opponent(player: Player) -> Player | None:
