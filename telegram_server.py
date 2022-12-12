@@ -94,7 +94,7 @@ async def get_opponent(player: Player) -> Player | None:
     opponent_queue.add(player)
     if len(opponent_queue) > 1:
         for elem in opponent_queue:
-            if elem.chat.id != player.chat.id:
+            if elem.chat_id != player.chat_id:
                 opponent_queue.remove(player)
                 opponent_queue.remove(elem)
                 return elem
