@@ -49,7 +49,7 @@ class GameSession:
         result, status = self.games[chat_id].check(number)
         if status == "win":
             players_chat_id = self.games.keys()
-            if players_chat_id[0] == chat_id:
+            if list(players_chat_id)[0] == chat_id:
                 winner = self.player_1
                 looser = self.player_2
             else:
