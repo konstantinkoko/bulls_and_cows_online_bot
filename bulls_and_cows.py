@@ -13,7 +13,7 @@ class BullsAndCows:
             return (candidate, status)
         result = {
             "bulls" : 0,
-            "cows" : 0
+            "cows" : 0,
             }
         print(_candidate, self.number) # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         for i, elem in enumerate(_candidate):
@@ -42,7 +42,7 @@ class BullsAndCows:
             _text = text
         return (_text, status)
 
-class GameSession:
+class GameSessionOld:
 
     def __init__(self, player_1, player_2) -> None:
         self.player_1 = player_1
@@ -52,7 +52,7 @@ class GameSession:
             player_2.chat_id : (game_2 := BullsAndCows())
         }
 
-    def check(self, chat_id, number) -> tuple:
+    def check(self, number, chat_id) -> tuple:
         result, status = self.games[chat_id].check(number)
         if status == "win":
             players_chat_id = self.games.keys()
@@ -70,3 +70,44 @@ class GameSession:
             }
         return (result, status)
 
+
+
+
+class GameSession:
+
+    def __init__(self, player, opponent) -> None:
+        self.mode = "single" if opponent is None else "pvp"
+        if self.mode == "single":
+            self.player = player
+            self.game = BullsAndCows()
+        else:
+            self.player_1 = player
+            self.player_2 = opponent
+            self.games = {
+                self.player_1.chat_id : (game_1 := BullsAndCows()),
+                self.player_2.chat_id : (game_2 := BullsAndCows())
+            }            
+
+    def check(self, number, chat_id) -> tuple:
+        if self.mode == "single":
+            result, status = self.game.check(number)
+        else:
+            result, status = self.games[chat_id].check(number)
+        steps = len(result)
+        if status == "win":
+            if self.mode == "single":
+                winner = self.player
+                looser = None
+            else:
+                players_chat_id = self.games.keys()
+                if list(players_chat_id)[0] == chat_id:
+                    winner = self.player_1
+                    looser = self.player_2
+                else:
+                    winner = self.player_2
+                    looser = self.player_1
+            result = {
+                "winner" : winner,
+                "looser" : looser
+            }
+        return (result, status, steps)
