@@ -42,37 +42,6 @@ class BullsAndCows:
             _text = text
         return (_text, status)
 
-class GameSessionOld:
-
-    def __init__(self, player_1, player_2) -> None:
-        self.player_1 = player_1
-        self.player_2 = player_2
-        self.games = {
-            player_1.chat_id : (game_1 := BullsAndCows()),
-            player_2.chat_id : (game_2 := BullsAndCows())
-        }
-
-    def check(self, number, chat_id) -> tuple:
-        result, status = self.games[chat_id].check(number)
-        if status == "win":
-            players_chat_id = self.games.keys()
-            if list(players_chat_id)[0] == chat_id:
-                winner = self.player_1
-                looser = self.player_2
-            else:
-                winner = self.player_2
-                looser = self.player_1
-            steps = len(result)
-            result = {
-                "winner" : winner,
-                "looser" : looser,
-                "steps" : steps
-            }
-        return (result, status)
-
-
-
-
 class GameSession:
 
     def __init__(self, player, opponent) -> None:

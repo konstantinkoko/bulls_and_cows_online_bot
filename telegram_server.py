@@ -52,6 +52,26 @@ async def begin_game_handler(message: types.Message, state: FSMContext):
         opponent = None
         await create_game_session(player, opponent, state)
 
+async def game_handler(message: types.Message, state: FSMContext):
+    number = message.text
+    data = await state.get_data()
+    session_index = data["session_index"]
+    session = await storage.get_shared_data(str(session_index))
+    result, status, steps = session.check(number, message.chat.id)
+    if status == "incorrect":
+        await message.answer(bot_messages.WRONG_INPUT_TEXT)
+    elif status == "win":
+        await state.storage.reset_state(chat=result["winner"].chat_id, user=result["winner"].id)
+        await bot.send_message(result["winner"].chat_id, bot_messages.WIN_TEXT.format(steps))
+        if result["looser"] is not None:
+            await state.storage.reset_state(chat=result["looser"].chat_id, user=result["looser"].id)
+            await bot.send_message(result["looser"].chat_id, bot_messages.LOSE_TEXT.format(steps))
+    else:
+        text = ""
+        for key in result:
+            text += bot_messages.GAME_STEP_TEXT.format(key, result[key]["bulls"], result[key]["cows"])
+        await message.answer(text)
+
 async def create_game_session(player: Player, opponent: Player | None, state: FSMContext):
     game_session = GameSession(player, opponent)
     session_index = await storage.get_shared_data("session_index")
@@ -77,35 +97,6 @@ async def create_game_session(player: Player, opponent: Player | None, state: FS
     else:
         await state.storage.set_state(chat=player.chat_id, user=player.id, state=GamerState.single_game)
         await bot.send_message(player.chat_id, bot_messages.BEGIN_SINGLE_GAME_TEXT)
-
-async def game_handler(message: types.Message, state: FSMContext):
-    number = message.text
-    current_state = await state.get_state()
-    data = await state.get_data()
-    session_index = data["session_index"]
-    session = await storage.get_shared_data(str(session_index))
-    result, status, steps = session.check(number, message.chat.id)
-    if status == "incorrect":
-        await message.answer(f"Wrong input!")
-    elif status == "win":
-        await state.reset_state()
-        if current_state == "GamerState:single_game":
-            await message.answer(f"You win 👋!    Steps: {steps}")
-        else:
-            await bot.send_message(
-                result["winner"].chat_id, f"You win 👋!    Steps: {steps}",
-                parse_mode=types.ParseMode.HTML,
-            )
-            await bot.send_message(
-                result["looser"].chat_id, f"You lose 👋!",
-                parse_mode=types.ParseMode.HTML,
-            )
-            await state.storage.reset_state(chat=result["looser"].chat_id, user=result["looser"].id)    
-    else:
-        text = ""
-        for key in result:
-            text += f"{key} : 🐂 {result[key]['bulls']}    🐮 {result[key]['cows']}\n" + "---------------\n"
-        await message.answer(text)
 
 opponent_queue = set()
 async def get_opponent(player: Player) -> Player | None:
