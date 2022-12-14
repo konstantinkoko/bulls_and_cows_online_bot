@@ -1,9 +1,12 @@
 import random
 
+# GAME SETTINGS:
+NUMBER_LENGHT = 4
+
 class BullsAndCows:
 
     def __init__(self) -> None:
-        self.number_lenght = 4
+        self.number_lenght = NUMBER_LENGHT
         self.number = self._number_generator()
         self.game_steps = {}
     
