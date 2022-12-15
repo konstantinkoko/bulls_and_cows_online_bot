@@ -7,6 +7,7 @@ from aiogram.dispatcher import FSMContext
 from bulls_and_cows import GameSession
 from bot_config import TELEGRAM_BOT_TOKEN as BOT_TOKEN
 import bot_messages
+from bot_keyboard import start_keyboard
 
 bot = Bot(token=BOT_TOKEN)
 
@@ -36,6 +37,7 @@ class Player:
 async def start_handler(message: types.Message):
     await message.answer(
         bot_messages.HELLO_MESSAGE_TEXT.format(message.from_user.get_mention(as_html=True)),
+        reply_markup=start_keyboard,
         parse_mode=types.ParseMode.HTML,
     )
 
@@ -62,10 +64,10 @@ async def game_handler(message: types.Message, state: FSMContext):
         await message.answer(bot_messages.WRONG_INPUT_TEXT)
     elif status == "win":
         await state.storage.reset_state(chat=result["winner"].chat_id, user=result["winner"].id)
-        await bot.send_message(result["winner"].chat_id, bot_messages.WIN_TEXT.format(steps))
+        await bot.send_message(result["winner"].chat_id, bot_messages.WIN_TEXT.format(steps), reply_markup=start_keyboard)
         if result["looser"] is not None:
             await state.storage.reset_state(chat=result["looser"].chat_id, user=result["looser"].id)
-            await bot.send_message(result["looser"].chat_id, bot_messages.LOSE_TEXT.format(steps))
+            await bot.send_message(result["looser"].chat_id, bot_messages.LOSE_TEXT.format(steps), reply_markup=start_keyboard)
     else:
         text = ""
         for key in result:
@@ -113,7 +115,7 @@ async def main():
     try:
         disp = Dispatcher(bot=bot, storage=storage)
         disp.register_message_handler(start_handler, commands={"start", "restart"})
-        disp.register_message_handler(begin_game_handler, commands={"search", "single"})
+        disp.register_message_handler(begin_game_handler, commands={"PvP_game", "Single_game"})
         disp.register_message_handler(game_handler, state={GamerState.single_game, GamerState.pvp_game})
         await disp.start_polling()
     finally:
