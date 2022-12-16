@@ -39,8 +39,13 @@ async def start_handler(message: types.Message, state: FSMContext):
     await message.answer(
         bot_messages.HELLO_MESSAGE_TEXT.format(message.from_user.get_mention(as_html=True)),
         reply_markup=start_keyboard,
-        parse_mode=types.ParseMode.HTML,
+        parse_mode=types.ParseMode.HTML
     )
+
+async def rulls_handler(message: types.Message, state: FSMContext):
+    await message.answer(bot_messages.RULLS_TEXT)
+    if await state.get_state() is not None:
+        await message.answer(bot_messages.PUT_THE_NUMBER_TEXT)
 
 async def begin_game_handler(message: types.Message, state: FSMContext):
     player = Player(message.chat.id, message.from_user.id)
@@ -75,7 +80,7 @@ async def game_handler(message: types.Message, state: FSMContext):
     session = await storage.get_shared_data(str(session_index))
     result, status, steps = session.check(number, message.chat.id)
     if status == "incorrect":
-        await message.answer(bot_messages.WRONG_INPUT_TEXT)
+        await message.answer(bot_messages.WRONG_INPUT_TEXT + bot_messages.PUT_THE_NUMBER_TEXT)
     elif status == "win":
         await state.storage.reset_state(chat=result["winner"].chat_id, user=result["winner"].id)
         await bot.send_message(result["winner"].chat_id, bot_messages.WIN_TEXT.format(steps), reply_markup=start_keyboard)
@@ -116,6 +121,7 @@ async def main():
     try:
         disp = Dispatcher(bot=bot, storage=storage)
         disp.register_message_handler(start_handler, commands={"start", "restart", "Cancel_game"}, state='*')
+        disp.register_message_handler(rulls_handler, commands={"Rulls"}, state='*')
         disp.register_message_handler(begin_game_handler, commands={"PvP_game", "Single_game"})
         disp.register_message_handler(game_handler, state={GamerState.single_game, GamerState.pvp_game})
         await disp.start_polling()
