@@ -7,7 +7,7 @@ from aiogram.dispatcher import FSMContext
 from bulls_and_cows import GameSession
 from bot_config import TELEGRAM_BOT_TOKEN as BOT_TOKEN
 import bot_messages
-from bot_keyboard import start_keyboard
+from keyboards import start_keyboard, cancel_keyboard
 
 bot = Bot(token=BOT_TOKEN)
 
@@ -34,7 +34,8 @@ class Player:
         self.chat_id = chat_id
         self.id = id
 
-async def start_handler(message: types.Message):
+async def start_handler(message: types.Message, state: FSMContext):
+    await state.reset_state()
     await message.answer(
         bot_messages.HELLO_MESSAGE_TEXT.format(message.from_user.get_mention(as_html=True)),
         reply_markup=start_keyboard,
@@ -50,9 +51,22 @@ async def begin_game_handler(message: types.Message, state: FSMContext):
             await GamerState.pvp_game.set()
             await state.storage.set_state(chat=opponent.chat_id, user=opponent.id, state=GamerState.pvp_game)
             await create_game_session(player, opponent, state)
+            player_info = await bot.get_chat_member(chat_id=player.chat_id, user_id=player.id)
+            opponent_info = await bot.get_chat_member(chat_id=opponent.chat_id, user_id=opponent.id)
+            await bot.send_message(
+            player.chat_id,
+            bot_messages.BEGIN_PVP_GAME_TEXT.format(opponent_info.user.get_mention(as_html=True)),
+            parse_mode=types.ParseMode.HTML,
+        )
+        await bot.send_message(
+            opponent.chat_id,
+            bot_messages.BEGIN_PVP_GAME_TEXT.format(player_info.user.get_mention(as_html=True)),
+            parse_mode=types.ParseMode.HTML,
+        )
     else:
         opponent = None
         await create_game_session(player, opponent, state)
+        await bot.send_message(player.chat_id, bot_messages.BEGIN_SINGLE_GAME_TEXT, reply_markup=cancel_keyboard)
 
 async def game_handler(message: types.Message, state: FSMContext):
     number = message.text
@@ -84,7 +98,7 @@ async def create_game_session(player: Player, opponent: Player | None, state: FS
         await state.storage.set_state(chat=opponent.chat_id, user=opponent.id, state=GamerState.pvp_game)
         await state.storage.update_data(chat=opponent.chat_id, user=opponent.id, data={"session_index" : session_index})
         await state.storage.set_state(chat=player.chat_id, user=player.id, state=GamerState.pvp_game)
-        player_info = await bot.get_chat_member(chat_id=player.chat_id, user_id=player.id)
+        """player_info = await bot.get_chat_member(chat_id=player.chat_id, user_id=player.id)
         opponent_info = await bot.get_chat_member(chat_id=opponent.chat_id, user_id=opponent.id)
         await bot.send_message(
             player.chat_id,
@@ -95,10 +109,10 @@ async def create_game_session(player: Player, opponent: Player | None, state: FS
             opponent.chat_id,
             bot_messages.BEGIN_PVP_GAME_TEXT.format(player_info.user.get_mention(as_html=True)),
             parse_mode=types.ParseMode.HTML,
-        )
+        )"""
     else:
         await state.storage.set_state(chat=player.chat_id, user=player.id, state=GamerState.single_game)
-        await bot.send_message(player.chat_id, bot_messages.BEGIN_SINGLE_GAME_TEXT)
+        #await bot.send_message(player.chat_id, bot_messages.BEGIN_SINGLE_GAME_TEXT, reply_markup=cancel_keyboard)
 
 opponent_queue = set()
 async def get_opponent(player: Player) -> Player | None:
@@ -114,7 +128,7 @@ async def get_opponent(player: Player) -> Player | None:
 async def main():
     try:
         disp = Dispatcher(bot=bot, storage=storage)
-        disp.register_message_handler(start_handler, commands={"start", "restart"})
+        disp.register_message_handler(start_handler, commands={"start", "restart", "Cancel_game"}, state='*')
         disp.register_message_handler(begin_game_handler, commands={"PvP_game", "Single_game"})
         disp.register_message_handler(game_handler, state={GamerState.single_game, GamerState.pvp_game})
         await disp.start_polling()
