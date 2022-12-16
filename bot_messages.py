@@ -10,7 +10,7 @@ GAME_STEP_TEXT = "{} : 🐂 {}    🐮 {}\n---------------\n"
 SEARCHING_OPPONENT_TEXT = "Searching opponent..."
 
 BEGIN_PVP_GAME_TEXT = "Your opponent is {} 👋!  Put the number:"
-BEGIN_SINGLE_GAME_TEXT = "Let's go! {PUT_THE_NUMBER_TEXT}"
+BEGIN_SINGLE_GAME_TEXT = "Let's go! " + PUT_THE_NUMBER_TEXT
 
 WIN_TEXT = "You win 👋!    Steps: {}"
 LOSE_TEXT = "You lose 😢!"
