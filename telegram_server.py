@@ -98,21 +98,8 @@ async def create_game_session(player: Player, opponent: Player | None, state: FS
         await state.storage.set_state(chat=opponent.chat_id, user=opponent.id, state=GamerState.pvp_game)
         await state.storage.update_data(chat=opponent.chat_id, user=opponent.id, data={"session_index" : session_index})
         await state.storage.set_state(chat=player.chat_id, user=player.id, state=GamerState.pvp_game)
-        """player_info = await bot.get_chat_member(chat_id=player.chat_id, user_id=player.id)
-        opponent_info = await bot.get_chat_member(chat_id=opponent.chat_id, user_id=opponent.id)
-        await bot.send_message(
-            player.chat_id,
-            bot_messages.BEGIN_PVP_GAME_TEXT.format(opponent_info.user.get_mention(as_html=True)),
-            parse_mode=types.ParseMode.HTML,
-        )
-        await bot.send_message(
-            opponent.chat_id,
-            bot_messages.BEGIN_PVP_GAME_TEXT.format(player_info.user.get_mention(as_html=True)),
-            parse_mode=types.ParseMode.HTML,
-        )"""
     else:
         await state.storage.set_state(chat=player.chat_id, user=player.id, state=GamerState.single_game)
-        #await bot.send_message(player.chat_id, bot_messages.BEGIN_SINGLE_GAME_TEXT, reply_markup=cancel_keyboard)
 
 opponent_queue = set()
 async def get_opponent(player: Player) -> Player | None:
