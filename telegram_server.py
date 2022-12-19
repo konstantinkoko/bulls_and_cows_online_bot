@@ -7,7 +7,7 @@ from aiogram.dispatcher import FSMContext
 from bulls_and_cows import GameSession
 from bot_config import TELEGRAM_BOT_TOKEN as BOT_TOKEN
 import bot_messages
-from keyboards import start_keyboard, cancel_keyboard
+from keyboards import start_keyboard, cancel_keyboard, rulls_keyboard
 
 bot = Bot(token=BOT_TOKEN)
 
@@ -49,8 +49,8 @@ async def rulls_handler(message: types.Message, state: FSMContext):
 
 async def begin_game_handler(message: types.Message, state: FSMContext):
     player = Player(message.chat.id, message.from_user.id)
-    if message.text.strip() == "/search":
-        await message.answer(bot_messages.SEARCHING_OPPONENT_TEXT)
+    if message.text.strip() == "/PvP_game":
+        await message.answer(bot_messages.SEARCHING_OPPONENT_TEXT, reply_markup=rulls_keyboard)
         opponent = await get_opponent(player)
         if opponent is not None:
             await GamerState.pvp_game.set()
@@ -59,15 +59,15 @@ async def begin_game_handler(message: types.Message, state: FSMContext):
             player_info = await bot.get_chat_member(chat_id=player.chat_id, user_id=player.id)
             opponent_info = await bot.get_chat_member(chat_id=opponent.chat_id, user_id=opponent.id)
             await bot.send_message(
-            player.chat_id,
-            bot_messages.BEGIN_PVP_GAME_TEXT.format(opponent_info.user.get_mention(as_html=True)),
-            parse_mode=types.ParseMode.HTML,
-        )
-        await bot.send_message(
-            opponent.chat_id,
-            bot_messages.BEGIN_PVP_GAME_TEXT.format(player_info.user.get_mention(as_html=True)),
-            parse_mode=types.ParseMode.HTML,
-        )
+                player.chat_id,
+                bot_messages.BEGIN_PVP_GAME_TEXT.format(opponent_info.user.get_mention(as_html=True)),
+                parse_mode=types.ParseMode.HTML,
+            )
+            await bot.send_message(
+                opponent.chat_id,
+                bot_messages.BEGIN_PVP_GAME_TEXT.format(player_info.user.get_mention(as_html=True)),
+                parse_mode=types.ParseMode.HTML,
+            )
     else:
         opponent = None
         await create_game_session(player, opponent, state)
