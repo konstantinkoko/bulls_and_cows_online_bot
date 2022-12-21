@@ -7,7 +7,7 @@ from aiogram.dispatcher import FSMContext
 from bulls_and_cows import GameSession
 from bot_config import LANGUAGE, TELEGRAM_BOT_TOKEN as BOT_TOKEN
 import bot_messages
-from keyboards import start_keyboard, cancel_keyboard, rules_keyboard
+from keyboards import start_keyboard, cancel_keyboard, rules_keyboard, symbol_keyboard
 
 # инициализация бота
 bot = Bot(token=BOT_TOKEN)
@@ -43,7 +43,7 @@ async def start_handler(message: types.Message, state: FSMContext):
     await state.reset_state()
     await message.answer(
         bot_messages.HELLO_MESSAGE_TEXT[LANGUAGE].format(message.from_user.get_mention(as_html=True)),
-        reply_markup=start_keyboard,
+        reply_markup=symbol_keyboard,   #start_keyboard,
         parse_mode=types.ParseMode.HTML
     )
 
