@@ -21,3 +21,26 @@ for symbol_line in symbols:
     for symbol in symbol_line:
         buttons.append(InlineKeyboardButton(symbol, callback_data=symbol))
     symbol_keyboard.row(*buttons)
+
+
+class SymbolKeyboard:
+
+    def __init__(self, secret_word) -> None:
+        self.symbols = list("йцукенгшщзхъфывапролджэячсмитьбю")
+        self.secret_word = tuple(secret_word)
+        self.bulls = []
+        self.cows = []
+
+    def _rebalance_symbols(self, word):
+        for i, symbol in enumerate(list(word)):
+            if word[i] == self.secret_word[i]:
+                self.bulls.append(symbol)
+                self.symbols.remove(symbol)
+            elif symbol in self.secret_word:
+                self.cows.append(symbol)
+                self.symbols.remove(symbol)
+    
+    def _get_keyboard(self) -> InlineKeyboardMarkup:
+        pass
+        
+
