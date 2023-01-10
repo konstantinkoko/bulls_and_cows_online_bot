@@ -4,6 +4,8 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.dispatcher import FSMContext
 
+from typing import Any
+
 from bulls_and_cows import GameSession
 from bot_config import LANGUAGE, TELEGRAM_BOT_TOKEN as BOT_TOKEN
 import bot_messages
@@ -14,14 +16,14 @@ bot = Bot(token=BOT_TOKEN)
 
 # добавление общего хранилища к MemoryStorage
 class MyMemoryStorage(MemoryStorage):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.shared_data = {"session_index" : 0}
     
-    async def get_shared_data(self, key):
+    async def get_shared_data(self, key: str) -> Any:
         return self.shared_data[key]
     
-    async def update_shared_data(self, data: dict):
+    async def update_shared_data(self, data: dict) -> None:
         for key in data:
             self.shared_data[key] = data[key]
 
@@ -39,7 +41,7 @@ class Player:
         self.id = id
 
 # хэндлеры
-async def start_handler(message: types.Message, state: FSMContext):
+async def start_handler(message: types.Message, state: FSMContext) -> None:
     await state.reset_state()
     await message.answer(
         bot_messages.HELLO_MESSAGE_TEXT[LANGUAGE].format(message.from_user.get_mention(as_html=True)),
@@ -47,12 +49,12 @@ async def start_handler(message: types.Message, state: FSMContext):
         parse_mode=types.ParseMode.HTML
     )
 
-async def rules_handler(message: types.Message, state: FSMContext):
+async def rules_handler(message: types.Message, state: FSMContext) -> None:
     await message.answer(bot_messages.RULES_TEXT[LANGUAGE])
     if await state.get_state() is not None:
         await message.answer(bot_messages.PUT_THE_NUMBER_TEXT[LANGUAGE])
 
-async def begin_game_handler(message: types.Message, state: FSMContext):
+async def begin_game_handler(message: types.Message, state: FSMContext) -> None:
     player = Player(message.chat.id, message.from_user.id)
     if message.text.strip() == "/PvP_game":
         await message.answer(bot_messages.SEARCHING_OPPONENT_TEXT[LANGUAGE], reply_markup=rules_keyboard)
@@ -78,7 +80,7 @@ async def begin_game_handler(message: types.Message, state: FSMContext):
         await create_game_session(player, opponent, state)
         await bot.send_message(player.chat_id, bot_messages.BEGIN_SINGLE_GAME_TEXT[LANGUAGE], reply_markup=cancel_keyboard)
 
-async def game_handler(message: types.Message, state: FSMContext):
+async def game_handler(message: types.Message, state: FSMContext) -> None:
     number = message.text
     data = await state.get_data()
     session_index = data["session_index"]
@@ -98,8 +100,8 @@ async def game_handler(message: types.Message, state: FSMContext):
             text += bot_messages.GAME_STEP_TEXT.format(key, result[key]["bulls"], result[key]["cows"])
         await message.answer(text)
 
-# создание игровой сессии (если opponent is None - single game)
-async def create_game_session(player: Player, opponent: Player | None, state: FSMContext):
+# создание и запись в хранилище игровой сессии (если opponent is None - single game), и установка соответствующих состояний игрокам
+async def create_game_session(player: Player, opponent: Player | None, state: FSMContext) -> None:
     game_session = GameSession(player, opponent)
     session_index = await storage.get_shared_data("session_index")
     session_index += 1
@@ -124,7 +126,7 @@ async def get_opponent(player: Player) -> Player | None:
                 return elem
     return None
 
-async def main():
+async def main() -> None:
     try:
         disp = Dispatcher(bot=bot, storage=storage)
         disp.register_message_handler(start_handler, commands={"start", "restart", "Cancel_game"}, state='*')

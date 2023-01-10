@@ -1,5 +1,4 @@
-from bulls_and_cows import NUMBER_LENGHT
-from bot_config import LANGUAGE
+from bot_config import LANGUAGE, NUMBER_LENGHT
 
 HELLO_MESSAGE_TEXT = {
     "en" : "Play with me, {} 👋!",

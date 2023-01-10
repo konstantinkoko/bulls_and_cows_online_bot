@@ -1,7 +1,5 @@
 import random
-
-# GAME SETTINGS:
-NUMBER_LENGHT = 4
+from bot_config import NUMBER_LENGHT
 
 class BullsAndCows:
 
